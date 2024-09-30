@@ -2,12 +2,10 @@ package com.dougdomingos.expensetracker.services;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -21,6 +19,10 @@ import com.dougdomingos.expensetracker.dto.user.LoginResponseDTO;
 import com.dougdomingos.expensetracker.dto.user.UserResponseDTO;
 import com.dougdomingos.expensetracker.entities.user.Role;
 import com.dougdomingos.expensetracker.entities.user.User;
+import com.dougdomingos.expensetracker.exceptions.user.PasswordInvalidException;
+import com.dougdomingos.expensetracker.exceptions.user.RoleNotFoundException;
+import com.dougdomingos.expensetracker.exceptions.user.UserNotFoundException;
+import com.dougdomingos.expensetracker.exceptions.user.UsernameAlreadyExistsException;
 import com.dougdomingos.expensetracker.repositories.RolesRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
 
@@ -49,19 +51,17 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDTO createNewUser(CreateNewUserDTO userDTO) {
 
         if (users.findByUsername(userDTO.getUsername()).isPresent()) {
-            throw new BadCredentialsException("User already exists!");
+            throw new UsernameAlreadyExistsException();
         }
 
-        Optional<Role> userRole = roles.findByRoleName(Role.TypeRole.USER);
-
-        if (!userRole.isPresent()) {
-            throw new BadCredentialsException("User role does not exist!");
-        }
+        Role userRole = roles
+                .findByRoleName(Role.TypeRole.USER)
+                .orElseThrow(RoleNotFoundException::new);
 
         User newUser = User.builder()
                 .username(userDTO.getUsername())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
-                .roles(Set.of(userRole.get()))
+                .roles(Set.of(userRole))
                 .build();
 
         users.save(newUser);
@@ -78,13 +78,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginDTO) {
 
-        Optional<User> user = users.findByUsername(loginDTO.getUsername());
-        if (!user.isPresent() || !passwordEncoder.matches(loginDTO.getPassword(), user.get().getPassword())) {
-            throw new BadCredentialsException("Username or password is incorrect!");
+        User user = users
+                .findByUsername(loginDTO.getUsername())
+                .orElseThrow(UserNotFoundException::new);
+
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+            throw new PasswordInvalidException();
         }
 
         return LoginResponseDTO.builder()
-                .accessToken(generateToken(user.get(), this.expiresIn))
+                .accessToken(generateToken(user, this.expiresIn))
                 .expiresIn(this.expiresIn)
                 .build();
     }
@@ -94,9 +97,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<UserResponseDTO> listUsers() {
-        List<User> userList = users.findAll();
-
-        return userList.stream()
+        return users.findAll()
+                .stream()
                 .map((item) -> mapper.map(item, UserResponseDTO.class))
                 .collect(Collectors.toList());
     }
@@ -113,8 +115,6 @@ public class UserServiceImpl implements UserService {
         String scopes = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
-        
-        System.out.println(scopes);
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("expense-tracker")
