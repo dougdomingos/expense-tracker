@@ -11,15 +11,17 @@ aprofundar meus conhecimentos em Spring Boot e praticar Design Patterns.
 Enquanto novo usuário, quero utilizar o sistema para me cadastrar como
 usuário do sistema.
 
-- Usuários são criados a partir de seu nome, email e uma senha de 8 
-  caracteres
+- Usuários são criados a partir de um nome e uma senha
+
+- Ao se cadastrar no sistema, o usuário recebe automaticamente um token
+  de Login
 
 ### US-02: Autenticação de usuários
 
 Enquanto usuário cadastrado, quero ser capaz de fazer Login no sistema para
 gerenciar minhas despesas e acessar minhas informações.
 
-- Para fazer Login, o usuário deve informar seu email e senha
+- Para fazer Login, o usuário deve informar seu nome e senha
 
 - Apenas usuários autenticados no sistema podem visualizar, modificar e/ou
   excluir seus próprios cadastros
