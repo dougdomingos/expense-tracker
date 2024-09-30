@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dougdomingos.expensetracker.dto.user.CreateNewUserDTO;
+import com.dougdomingos.expensetracker.dto.user.LoginRequestDTO;
 import com.dougdomingos.expensetracker.dto.user.LoginResponseDTO;
 import com.dougdomingos.expensetracker.dto.user.UserResponseDTO;
 import com.dougdomingos.expensetracker.services.UserService;
@@ -35,8 +36,15 @@ public class UserController {
                 .body(userService.createNewUser(userDTO));
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginDTO) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService.login(loginDTO));
+    }
+
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> listAllUsers() {
         return ResponseEntity
                 .status(HttpStatus.OK)

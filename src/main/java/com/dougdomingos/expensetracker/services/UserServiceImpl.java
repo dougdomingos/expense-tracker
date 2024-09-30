@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService {
             throw new BadCredentialsException("User already exists!");
         }
 
-        Optional<Role> userRole = roles.findByRoleName(Role.TypeRole.ROLE_USER);
+        Optional<Role> userRole = roles.findByRoleName(Role.TypeRole.USER);
 
         if (!userRole.isPresent()) {
             throw new BadCredentialsException("User role does not exist!");
@@ -78,7 +79,7 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDTO login(LoginRequestDTO loginDTO) {
 
         Optional<User> user = users.findByUsername(loginDTO.getUsername());
-        if (!user.isPresent() || passwordEncoder.matches(loginDTO.getPassword(), user.get().getPassword())) {
+        if (!user.isPresent() || !passwordEncoder.matches(loginDTO.getPassword(), user.get().getPassword())) {
             throw new BadCredentialsException("Username or password is incorrect!");
         }
 
@@ -109,16 +110,18 @@ public class UserServiceImpl implements UserService {
      */
     private String generateToken(User user, long expiresIn) {
         Instant now = Instant.now();
-        String roles = user.getRoles().stream()
-                .map((role) -> role.getRoleName().name())
+        String scopes = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
+        
+        System.out.println(scopes);
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("expense-tracker")
                 .subject(user.getUserId().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(this.expiresIn))
-                .claim("roles", roles)
+                .claim("scope", scopes)
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
