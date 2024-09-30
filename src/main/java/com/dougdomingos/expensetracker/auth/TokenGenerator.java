@@ -3,6 +3,7 @@ package com.dougdomingos.expensetracker.auth;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -16,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class TokenGenerator {
+
+    @Value("${spring.application.name}")
+    private String issuerName;
 
     private final JwtEncoder jwtEncoder;
 
@@ -33,7 +37,7 @@ public class TokenGenerator {
                 .collect(Collectors.joining(" "));
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("expense-tracker")
+                .issuer(issuerName)
                 .subject(user.getUserId().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
