@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Optional;
@@ -20,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +31,7 @@ import com.dougdomingos.expensetracker.entities.user.User;
 import com.dougdomingos.expensetracker.exceptions.ApplicationErrorType;
 import com.dougdomingos.expensetracker.repositories.RolesRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
+import com.dougdomingos.expensetracker.testutils.APITestClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -41,9 +39,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @DisplayName("Integration tests for user features")
 public class UserControllerTest {
 
-    final String URI_USERS = "/users";
-
     final ObjectMapper objectMapper = new ObjectMapper();
+
+    final APITestClient apiClient = new APITestClient("/users");
 
     @Autowired
     MockMvc driver;
@@ -69,6 +67,8 @@ public class UserControllerTest {
     @BeforeEach
     void setup() throws Exception {
         dataInitializer.run();
+
+        apiClient.setDriver(driver);
 
         userRepository.save(User.builder()
                 .username("User 001")
@@ -120,12 +120,7 @@ public class UserControllerTest {
                     .password("test_passwd")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(newUser, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -143,12 +138,7 @@ public class UserControllerTest {
                     .password("test_passwd")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(newUser, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -166,12 +156,7 @@ public class UserControllerTest {
                     .password(null)
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(newUser, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -189,12 +174,7 @@ public class UserControllerTest {
                     .password("")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(newUser, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -212,17 +192,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Rejects login with null name")
         void whenLogin_withNullName_expectToFail() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username(null)
                     .password("test_passwd")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -235,17 +212,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Rejects login with blank name")
         void whenLogin_withBlankName_expectToFail() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("")
                     .password("test_passwd")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -258,17 +232,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Rejects login with null password")
         void whenLogin_withNullPassword_expectToFail() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("Test User")
                     .password(null)
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -281,17 +252,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Rejects login with blank password")
         void whenLogin_withBlankPassword_expectToFail() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("Test User")
                     .password("")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -304,17 +272,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Rejects login for a inexistent user")
         void whenLogin_withInexistentUser_expectToFail() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("I do not exist =O")
                     .password("test_password")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -326,17 +291,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Rejects login with wrong password")
         void whenLogin_withWrongPassword_expectToFail() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("User 001")
                     .password("shh, this is a secret ;)")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isBadRequest())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isBadRequest());
 
             ApplicationErrorType result = objectMapper
                     .readValue(responseJSON, ApplicationErrorType.class);
@@ -358,12 +320,7 @@ public class UserControllerTest {
                     .password("test_passwd")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isCreated())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(newUser, status().isCreated());
 
             LoginResponseDTO result = objectMapper
                     .readValue(responseJSON, LoginResponseDTO.LoginResponseDTOBuilder.class)
@@ -373,21 +330,18 @@ public class UserControllerTest {
                     () -> assertNotNull(result.getAccessToken()),
                     () -> assertNotNull(result.getExpiresIn()));
         }
-        
+
         @Test
         @DisplayName("Accept login as user with valid data")
         void whenLoginAsUser_withValidData_expectToPass() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("User 001")
                     .password("test123")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isOk());
 
             LoginResponseDTO result = objectMapper
                     .readValue(responseJSON, LoginResponseDTO.LoginResponseDTOBuilder.class)
@@ -401,17 +355,14 @@ public class UserControllerTest {
         @Test
         @DisplayName("Accept login as admin with valid data")
         void whenLoginAsAdmin_withValidData_expectToPass() throws Exception {
-            LoginRequestDTO newUser = LoginRequestDTO.builder()
+            apiClient.setRoute("/login");
+
+            LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                     .username("admin")
                     .password("admin")
                     .build();
 
-            String responseJSON = driver.perform(post(URI_USERS + "/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(newUser)))
-                    .andExpect(status().isOk())
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            String responseJSON = apiClient.makePostRequest(loginRequest, status().isOk());
 
             LoginResponseDTO result = objectMapper
                     .readValue(responseJSON, LoginResponseDTO.LoginResponseDTOBuilder.class)
