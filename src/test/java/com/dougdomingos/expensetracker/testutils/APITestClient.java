@@ -13,24 +13,24 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 /**
  * Helper class for simulating API requests.
  */
+@RequiredArgsConstructor
 public class APITestClient {
 
     private final String BASE_URI;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private String route;
+    @Setter
+    private String route = "";
 
+    @Setter
     private MockMvc driver;
-
-    public APITestClient(String BASE_URI) {
-        this.BASE_URI = BASE_URI;
-        this.driver = null;
-        this.route = "";
-    }
 
     /**
      * Make a GET request to the specified route and returns the response.
@@ -90,14 +90,6 @@ public class APITestClient {
             ResultMatcher expectMatcher) throws Exception {
 
         return makeRequest(delete(BASE_URI + route), content, expectMatcher);
-    }
-
-    public void setRoute(String route) {
-        this.route = route;
-    }
-
-    public void setDriver(MockMvc driver) {
-        this.driver = driver;
     }
 
     private String makeRequest(
