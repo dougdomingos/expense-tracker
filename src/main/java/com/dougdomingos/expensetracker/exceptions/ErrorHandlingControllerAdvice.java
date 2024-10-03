@@ -21,7 +21,7 @@ public class ErrorHandlingControllerAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ApplicationErrorType onMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         ApplicationErrorType customErrorType = buildApplicationError(
-                "Erros de validacao encontrados");
+                "Validation errors have occurred");
 
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
             customErrorType.getErrors().add(fieldError.getDefaultMessage());
@@ -35,7 +35,7 @@ public class ErrorHandlingControllerAdvice {
     @ExceptionHandler(ConstraintViolationException.class)
     public ApplicationErrorType onConstraintViolation(ConstraintViolationException e) {
         ApplicationErrorType customErrorType = buildApplicationError(
-                "Erros de validacao encontrados");
+                "Validation errors have occurred");
 
         for (ConstraintViolation<?> violation : e.getConstraintViolations()) {
             customErrorType.getErrors().add(violation.getMessage());

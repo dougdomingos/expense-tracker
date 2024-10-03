@@ -19,6 +19,7 @@ import com.dougdomingos.expensetracker.dto.user.UserResponseDTO;
 import com.dougdomingos.expensetracker.services.UserService;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,14 +31,14 @@ public class UserController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<LoginResponseDTO> createNewUser(@RequestBody CreateNewUserDTO userDTO) {
+    public ResponseEntity<LoginResponseDTO> createNewUser(@RequestBody @Valid CreateNewUserDTO userDTO) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService.createNewUser(userDTO));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginDTO) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginDTO) {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(userService.login(loginDTO));

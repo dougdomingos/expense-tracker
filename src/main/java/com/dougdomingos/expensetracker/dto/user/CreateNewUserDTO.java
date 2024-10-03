@@ -8,9 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Record DTO for registering new users into the application.
- */
 @Data
 @Builder
 @NoArgsConstructor
