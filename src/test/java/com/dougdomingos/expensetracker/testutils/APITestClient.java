@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
- * Helper class for simulating API requests.
+ * Helper class for mocking API requests.
  */
 @RequiredArgsConstructor
 public class APITestClient {
@@ -31,6 +31,9 @@ public class APITestClient {
 
     @Setter
     private MockMvc driver;
+
+    @Setter
+    private String authToken;
 
     /**
      * Make a GET request to the specified route and returns the response.
@@ -92,14 +95,32 @@ public class APITestClient {
         return makeRequest(delete(BASE_URI + route), content, expectMatcher);
     }
 
+    /**
+     * Makes a mock request with the specified HTTP method, the request content
+     * and validates the result.
+     *
+     * @param method        The HTTP request builder to be used (e.g., GET, POST).
+     * @param content       The content to be sent in the request body.
+     * @param expectMatcher The matcher used to validate the expected result of the
+     *                      request.
+     * @return The response from the request as a string.
+     * @throws Exception If an error occurs during the execution of the request.
+     */
     private String makeRequest(
             MockHttpServletRequestBuilder method,
             Object content,
             ResultMatcher expectMatcher) throws Exception {
 
-        return driver.perform(method
+        MockHttpServletRequestBuilder request = method
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(content)))
+                .content(objectMapper.writeValueAsString(content));
+
+        // Add the authentication token if present
+        if (authToken != null && !authToken.isBlank()) {
+            request.header("Authorization", String.format("Bearer %s", authToken));
+        }
+
+        return driver.perform(request)
                 .andExpect(expectMatcher)
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
