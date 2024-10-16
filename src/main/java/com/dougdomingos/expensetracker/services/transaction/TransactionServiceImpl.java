@@ -72,16 +72,6 @@ public class TransactionServiceImpl implements TransactionService {
             throw new InvalidTransactionTypeException();
         }
 
-        // TransactionType transactionType = TransactionType.valueOf(type);
-
-        // if (transactionType == null) {
-        // transactions = transactionRepository
-        // .findByOwner(currentUser);
-        // } else {
-        // transactions = transactionRepository
-        // .findByOwnerAndTransactionType(currentUser, transactionType);
-        // }
-
         return transactions.stream()
                 .map((transaction) -> mapper.map(transaction, TransactionResponseDTO.class))
                 .collect(Collectors.toList());
