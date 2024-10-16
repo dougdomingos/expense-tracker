@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,6 +35,9 @@ public class APITestClient {
 
     @Setter
     private String authToken;
+
+    @Setter
+    private MultiValueMap<String, String> params;
 
     /**
      * Make a GET request to the specified route and returns the response.
@@ -118,6 +122,11 @@ public class APITestClient {
         // Add the authentication token if present
         if (authToken != null && !authToken.isBlank()) {
             request.header("Authorization", String.format("Bearer %s", authToken));
+        }
+
+        // Add request params if present
+        if (params != null) {
+            request.params(params);
         }
 
         return driver.perform(request)
