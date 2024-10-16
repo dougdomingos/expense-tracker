@@ -16,7 +16,7 @@ import com.dougdomingos.expensetracker.dto.user.CreateNewUserDTO;
 import com.dougdomingos.expensetracker.dto.user.LoginRequestDTO;
 import com.dougdomingos.expensetracker.dto.user.LoginResponseDTO;
 import com.dougdomingos.expensetracker.dto.user.UserResponseDTO;
-import com.dougdomingos.expensetracker.services.UserService;
+import com.dougdomingos.expensetracker.services.user.UserService;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;

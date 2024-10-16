@@ -1,4 +1,4 @@
-package com.dougdomingos.expensetracker.services;
+package com.dougdomingos.expensetracker.services.user;
 
 import java.util.List;
 
