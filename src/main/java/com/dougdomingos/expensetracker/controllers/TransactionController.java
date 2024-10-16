@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dougdomingos.expensetracker.dto.transaction.CreateTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.EditTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.TransactionResponseDTO;
-import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.services.transaction.TransactionService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -53,7 +52,7 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<List<TransactionResponseDTO>> getTransactionsByType(
-            @RequestParam(required = false) TransactionType type) {
+            @RequestParam(required = false) String type) {
 
         return ResponseEntity
                 .status(HttpStatus.OK)

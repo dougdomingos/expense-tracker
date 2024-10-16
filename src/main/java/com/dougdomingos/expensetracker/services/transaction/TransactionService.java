@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.dougdomingos.expensetracker.dto.transaction.CreateTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.TransactionResponseDTO;
-import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 
 public interface TransactionService {
 
@@ -12,7 +11,7 @@ public interface TransactionService {
 
     TransactionResponseDTO getTransaction(Long id);
 
-    List<TransactionResponseDTO> listTransactions(TransactionType transactionType);
+    List<TransactionResponseDTO> listTransactions(String type);
 
     TransactionResponseDTO editTransaction(Long id, Object transactionDTO);
 

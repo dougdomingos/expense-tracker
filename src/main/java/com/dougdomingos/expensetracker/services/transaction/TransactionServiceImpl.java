@@ -13,6 +13,7 @@ import com.dougdomingos.expensetracker.dto.transaction.TransactionResponseDTO;
 import com.dougdomingos.expensetracker.entities.transaction.Transaction;
 import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.entities.user.User;
+import com.dougdomingos.expensetracker.exceptions.transaction.InvalidTransactionTypeException;
 import com.dougdomingos.expensetracker.exceptions.transaction.TransactionNotFoundException;
 import com.dougdomingos.expensetracker.repositories.TransactionRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
@@ -57,17 +58,29 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionResponseDTO> listTransactions(TransactionType transactionType) {
+    public List<TransactionResponseDTO> listTransactions(String type) {
         List<Transaction> transactions;
         User currentUser = userRepository.findByUserId(AuthUtils.getAuthenticatedUserID());
 
-        if (transactionType == null) {
-            transactions = transactionRepository
-                    .findByOwner(currentUser);
+        if (type == null || type.isBlank()) {
+            transactions = transactionRepository.findByOwner(currentUser);
+        } else if (TransactionType.isTypeDefined(type)) {
+            transactions = transactionRepository.findByOwnerAndTransactionType(
+                    currentUser,
+                    TransactionType.valueOf(type.toUpperCase()));
         } else {
-            transactions = transactionRepository
-                    .findByOwnerAndTransactionType(currentUser, transactionType);
+            throw new InvalidTransactionTypeException();
         }
+
+        // TransactionType transactionType = TransactionType.valueOf(type);
+
+        // if (transactionType == null) {
+        // transactions = transactionRepository
+        // .findByOwner(currentUser);
+        // } else {
+        // transactions = transactionRepository
+        // .findByOwnerAndTransactionType(currentUser, transactionType);
+        // }
 
         return transactions.stream()
                 .map((transaction) -> mapper.map(transaction, TransactionResponseDTO.class))
