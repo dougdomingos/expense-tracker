@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dougdomingos.expensetracker.dto.transaction.BalanceResponseDTO;
 import com.dougdomingos.expensetracker.dto.transaction.CreateTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.EditTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.TransactionResponseDTO;
+import com.dougdomingos.expensetracker.services.transaction.BalanceService;
 import com.dougdomingos.expensetracker.services.transaction.TransactionService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -31,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 public class TransactionController {
 
     private final TransactionService transactionService;
+
+    private final BalanceService balanceService;
 
     @PostMapping
     public ResponseEntity<TransactionResponseDTO> createTransaction(
@@ -57,6 +61,13 @@ public class TransactionController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(transactionService.listTransactions(type));
+    }
+
+    @GetMapping("/balance")
+    public ResponseEntity<BalanceResponseDTO> getCurrentBalance() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(balanceService.getCurrentBalance());
     }
 
     @PutMapping("/{idTransaction}")
