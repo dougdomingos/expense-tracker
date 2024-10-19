@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.dougdomingos.expensetracker.auth.TokenGenerator;
+import com.dougdomingos.expensetracker.dto.transaction.BalanceResponseDTO;
 import com.dougdomingos.expensetracker.dto.transaction.CreateTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.EditTransactionDTO;
 import com.dougdomingos.expensetracker.dto.transaction.TransactionResponseDTO;
@@ -178,7 +181,7 @@ public class TransactionControllerTest {
                     .amount(0D)
                     .build();
 
-            requestRoute = "/" + createTestTransaction(TransactionType.INCOME).getTransactionId();
+            requestRoute = "/" + createTestTransaction(TransactionType.INCOME, 0).getTransactionId();
             apiClient.setRoute(requestRoute);
         }
 
@@ -251,8 +254,8 @@ public class TransactionControllerTest {
         @BeforeEach
         void setup() {
             requestParams = new LinkedMultiValueMap<>();
-            createTestTransaction(TransactionType.INCOME);
-            createTestTransaction(TransactionType.EXPENSE);
+            createTestTransaction(TransactionType.INCOME, 0);
+            createTestTransaction(TransactionType.EXPENSE, 0);
         }
 
         @Test
@@ -317,6 +320,93 @@ public class TransactionControllerTest {
 
             assertAll(
                     () -> assertEquals("Specified transaction type does not exist", result.getMessage()));
+        }
+    }
+
+    @Nested
+    @DisplayName("Balance validation tests")
+    class BalanceValidationTests {
+
+        private String currentMonth;
+
+        @BeforeEach
+        void setup() {
+            apiClient.setRoute("/balance");
+
+            currentMonth = Calendar
+                    .getInstance()
+                    .getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
+        }
+
+        @Test
+        @DisplayName("Calculating balance only considers transactions of current month")
+        void whenCalculatingBalance_withOlderTransactions_expectToCountOnlyCurrentMonth() throws Exception {
+            transactionRepository.save(Transaction.builder()
+                    .transactionType(TransactionType.INCOME)
+                    .title("Old transaction")
+                    .amount(250D)
+                    .createdAt(LocalDateTime.of(2000, 1, 1, 12, 0, 0))
+                    .build());
+            
+            createTestTransaction(TransactionType.INCOME, 250);
+
+            String responseJSON = apiClient.makeGetRequest(null, status().isOk());
+
+            BalanceResponseDTO result = objectMapper
+                    .readValue(responseJSON, BalanceResponseDTO.BalanceResponseDTOBuilder.class)
+                    .build();
+
+            assertAll(
+                    () -> assertEquals(currentMonth, result.getCurrentMonth()),
+                    () -> assertEquals(250, result.getBalance()));
+        }
+
+        @Test
+        @DisplayName("Calculating balance with no transactions returns zero")
+        void whenCalculatingBalance_withNoTransactions_expectToReturnZero() throws Exception {
+            String responseJSON = apiClient.makeGetRequest(null, status().isOk());
+
+            BalanceResponseDTO result = objectMapper
+                    .readValue(responseJSON, BalanceResponseDTO.BalanceResponseDTOBuilder.class)
+                    .build();
+
+            assertAll(
+                    () -> assertEquals(currentMonth, result.getCurrentMonth()),
+                    () -> assertEquals(0, result.getBalance()));
+        }
+
+        @Test
+        @DisplayName("Calculating balance may return a positive value")
+        void whenCalculatingBalance_withPositiveValue_expectToPass() throws Exception {
+            double expectedValue = 500;
+            createTestTransaction(TransactionType.INCOME, expectedValue);
+
+            String responseJSON = apiClient.makeGetRequest(null, status().isOk());
+
+            BalanceResponseDTO result = objectMapper
+                    .readValue(responseJSON, BalanceResponseDTO.BalanceResponseDTOBuilder.class)
+                    .build();
+
+            assertAll(
+                    () -> assertEquals(currentMonth, result.getCurrentMonth()),
+                    () -> assertEquals(expectedValue, result.getBalance()));
+        }
+
+        @Test
+        @DisplayName("Calculating balance may return a negative value")
+        void whenCalculatingBalance_withNegativeValue_expectToPass() throws Exception {
+            double expectedValue = 500;
+            createTestTransaction(TransactionType.EXPENSE, expectedValue);
+
+            String responseJSON = apiClient.makeGetRequest(null, status().isOk());
+
+            BalanceResponseDTO result = objectMapper
+                    .readValue(responseJSON, BalanceResponseDTO.BalanceResponseDTOBuilder.class)
+                    .build();
+
+            assertAll(
+                    () -> assertEquals(currentMonth, result.getCurrentMonth()),
+                    () -> assertEquals(-expectedValue, result.getBalance()));
         }
     }
 
@@ -395,7 +485,7 @@ public class TransactionControllerTest {
         @Test
         @DisplayName("Accept reading existent transaction")
         void whenReadingTransaction_withValidID_expectToPass() throws Exception {
-            Transaction testTransaction = createTestTransaction(TransactionType.INCOME);
+            Transaction testTransaction = createTestTransaction(TransactionType.INCOME, 100);
             apiClient.setRoute("/" + testTransaction.getTransactionId());
 
             String responseJSON = apiClient.makeGetRequest(null, status().isOk());
@@ -414,7 +504,7 @@ public class TransactionControllerTest {
         @Test
         @DisplayName("Accept editing transaction with valid data")
         void whenEditTransaction_withValidData_expectToPass() throws Exception {
-            Transaction testTransaction = createTestTransaction(TransactionType.INCOME);
+            Transaction testTransaction = createTestTransaction(TransactionType.INCOME, 100);
 
             EditTransactionDTO editedTransaction = EditTransactionDTO.builder()
                     .title("Edited transaction title")
@@ -438,7 +528,7 @@ public class TransactionControllerTest {
         @Test
         @DisplayName("Accept removing existent transaction")
         void whenRemovingExistentTransaction_expectToPass() throws Exception {
-            Transaction testTransaction = createTestTransaction(TransactionType.INCOME);
+            Transaction testTransaction = createTestTransaction(TransactionType.INCOME, 100);
 
             apiClient.setRoute("/" + testTransaction.getTransactionId());
             String responseJSON = apiClient.makeDeleteRequest(null, status().isNoContent());
@@ -455,12 +545,12 @@ public class TransactionControllerTest {
      * @param type The type of the transaction
      * @return The transaction object
      */
-    private Transaction createTestTransaction(TransactionType type) {
+    private Transaction createTestTransaction(TransactionType type, double value) {
         return transactionRepository.save(Transaction.builder()
                 .transactionType(type)
                 .title("Test transaction")
                 .description("Transaction description")
-                .amount(1000D)
+                .amount(value)
                 .createdAt(LocalDateTime.now())
                 .owner(testUser)
                 .build());

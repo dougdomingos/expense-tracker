@@ -36,12 +36,17 @@ minhas receitas e despesas mensais.
 - Transações são criadas a partir de um título, uma descrição (opcional),
   o valor da transação e sua data de criação
 
-- Ao listar transações, também será informado o saldo atual do usuário
+- O usuário também poderá listar transações pelo tipo (despesas ou receitas)
 
-- O usuário poderá listar transações pelo tipo despesas ou receitas. A
-  listagem deve incluir o valor total das transações daquele tipo.
+### US-04: Saldo mensal
 
-### US-04: Transações fixas
+Enquanto usuário autenticado, quero ser capaz de visualizar meu saldo
+referente ao mês atual.
+
+- O saldo mensal consiste na soma dos valores de todas as transações do
+  usuário no mês atual
+
+### US-05: Transações fixas
 
 Enquanto usuário autenticado, quero ser capaz de definir transações,
 tanto despesas quanto receitas, que se repetem mensalmente.
@@ -53,7 +58,7 @@ tanto despesas quanto receitas, que se repetem mensalmente.
 
 - Cancelar uma transação fixa não a remove do saldo do mês atual
 
-### US-05: Categorias de Transações
+### US-06: Categorias de Transações
 
 Enquanto usuário autenticado, quero utilizar o sistema para classificar
 minhas transações em categorias.
@@ -72,7 +77,7 @@ minhas transações em categorias.
 - Ao listar uma categoria específica, deve ser incluído o valor total
   das transações associadas a ela
 
-### US-06: Alertas de Despesa
+### US-07: Alertas de Despesa
 
 Enquanto usuário autenticado, quero ser notificado quando o valor total 
 das minhas despesas alcançarem um determinado valor.
@@ -83,7 +88,7 @@ das minhas despesas alcançarem um determinado valor.
 - Quando um alerta for ativado, o usuário será notificado da causa
   do alerta
 
-### US-07: Relatório Mensal
+### US-08: Relatório Mensal
 
 Enquanto usuário autenticado, quero ser capaz de gerar um relatório
 com uma visão geral das transações realizadas durante o mês.
