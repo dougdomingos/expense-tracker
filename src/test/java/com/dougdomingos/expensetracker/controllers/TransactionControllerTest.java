@@ -395,7 +395,7 @@ public class TransactionControllerTest {
         @Test
         @DisplayName("Calculating balance may return a negative value")
         void whenCalculatingBalance_withNegativeValue_expectToPass() throws Exception {
-            double expectedValue = 500;
+            double expectedValue = -500;
             createTestTransaction(TransactionType.EXPENSE, expectedValue);
 
             String responseJSON = apiClient.makeGetRequest(null, status().isOk());
@@ -406,7 +406,7 @@ public class TransactionControllerTest {
 
             assertAll(
                     () -> assertEquals(currentMonth, result.getCurrentMonth()),
-                    () -> assertEquals(-expectedValue, result.getBalance()));
+                    () -> assertEquals(expectedValue, result.getBalance()));
         }
     }
 
@@ -457,7 +457,7 @@ public class TransactionControllerTest {
                     () -> assertEquals(newTransaction.getTransactionType(), result.getTransactionType()),
                     () -> assertEquals(newTransaction.getTitle(), result.getTitle()),
                     () -> assertEquals(newTransaction.getDescription(), result.getDescription()),
-                    () -> assertEquals(newTransaction.getAmount(), result.getAmount()));
+                    () -> assertEquals(-newTransaction.getAmount(), result.getAmount()));
         }
 
         @Test

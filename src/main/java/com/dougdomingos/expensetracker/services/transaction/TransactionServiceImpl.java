@@ -32,9 +32,16 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionResponseDTO createTransaction(CreateTransactionDTO transactionDTO) {
-        User transactionOwner = userRepository.findByUserId(AuthUtils.getAuthenticatedUserID());
 
+        User transactionOwner = userRepository.findByUserId(AuthUtils.getAuthenticatedUserID());
         Transaction newTransaction = mapper.map(transactionDTO, Transaction.class);
+
+        Double absAmount = Math.abs(newTransaction.getAmount());
+        if (newTransaction.getTransactionType().equals(TransactionType.EXPENSE)) {
+            absAmount *= -1;
+        }
+
+        newTransaction.setAmount(absAmount);
         newTransaction.setOwner(transactionOwner);
 
         transactionRepository.save(newTransaction);

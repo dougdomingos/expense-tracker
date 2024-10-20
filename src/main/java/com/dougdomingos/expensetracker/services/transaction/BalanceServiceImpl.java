@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.dougdomingos.expensetracker.auth.AuthUtils;
 import com.dougdomingos.expensetracker.dto.transaction.BalanceResponseDTO;
 import com.dougdomingos.expensetracker.entities.transaction.Transaction;
-import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.entities.user.User;
 import com.dougdomingos.expensetracker.repositories.TransactionRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
@@ -41,14 +40,9 @@ public class BalanceServiceImpl implements BalanceService {
                 getFirstDateOfCurrentMonth(),
                 getLastDateOfCurrentMonth());
 
-        double total = 0;
-        for (Transaction transaction : transactions) {
-            if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                transaction.setAmount(transaction.getAmount() * -1);
-            }
-
-            total += transaction.getAmount();
-        }
+        Double total = transactions.stream()
+                .mapToDouble(Transaction::getAmount)
+                .sum();
 
         return BalanceResponseDTO.builder()
                 .balance(total)
