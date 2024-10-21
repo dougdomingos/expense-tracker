@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EditTransactionDTO {
 
+    @JsonProperty("isRecurrent")
+    private boolean isRecurrent;
+
     @JsonProperty("title")
     @NotBlank(message = "Title is required")
     private String title;

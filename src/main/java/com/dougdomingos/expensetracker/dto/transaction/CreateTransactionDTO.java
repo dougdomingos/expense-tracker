@@ -23,6 +23,9 @@ public class CreateTransactionDTO {
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
+    @JsonProperty("isRecurrent")
+    private boolean isRecurrent;
+
     @JsonProperty("title")
     @NotBlank(message = "Title is required")
     private String title;

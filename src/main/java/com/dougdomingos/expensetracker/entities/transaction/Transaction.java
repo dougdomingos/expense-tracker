@@ -35,6 +35,10 @@ public class Transaction {
     private TransactionType transactionType;
 
     @Column(nullable = false)
+    @Builder.Default
+    private boolean isRecurrent = false;
+
+    @Column(nullable = false)
     private Double amount;
 
     @Column(nullable = false)
