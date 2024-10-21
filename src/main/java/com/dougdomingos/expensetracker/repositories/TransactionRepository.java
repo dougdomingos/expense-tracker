@@ -36,4 +36,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
      * @return A list of transactions that match the given interval
      */
     List<Transaction> findByOwnerAndCreatedAtBetween(User owner, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Featch all recurrent transactions.
+     * 
+     * @return A list of transactions that are recurrent
+     */
+    List<Transaction> findByIsRecurrentTrue();
 }
