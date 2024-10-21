@@ -36,6 +36,7 @@ import com.dougdomingos.expensetracker.exceptions.ApplicationErrorType;
 import com.dougdomingos.expensetracker.exceptions.user.UserNotFoundException;
 import com.dougdomingos.expensetracker.repositories.TransactionRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
+import com.dougdomingos.expensetracker.services.transaction.RecurrentTransactionService;
 import com.dougdomingos.expensetracker.testutils.APITestClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -44,7 +45,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("Integration tests for user features")
+@DisplayName("Integration tests for transaction features")
 public class TransactionControllerTest {
 
     final ObjectMapper objectMapper = new ObjectMapper();
@@ -65,6 +66,9 @@ public class TransactionControllerTest {
 
     @Autowired
     TransactionRepository transactionRepository;
+
+    @Autowired
+    RecurrentTransactionService recurrentTransactionService;
 
     User testUser;
 
@@ -347,7 +351,7 @@ public class TransactionControllerTest {
                     .amount(250D)
                     .createdAt(LocalDateTime.of(2000, 1, 1, 12, 0, 0))
                     .build());
-            
+
             createTestTransaction(TransactionType.INCOME, 250);
 
             String responseJSON = apiClient.makeGetRequest(null, status().isOk());
@@ -407,6 +411,49 @@ public class TransactionControllerTest {
             assertAll(
                     () -> assertEquals(currentMonth, result.getCurrentMonth()),
                     () -> assertEquals(expectedValue, result.getBalance()));
+        }
+    }
+
+    @Nested
+    @DisplayName("Transaction recurrence tests")
+    class TransactionRecurrenceTests {
+
+        @BeforeEach
+        void setup() {
+            transactionRepository.save(Transaction.builder()
+                    .transactionType(TransactionType.INCOME)
+                    .isRecurrent(true)
+                    .title("Recurrent transaction")
+                    .amount(500D)
+                    .owner(testUser)
+                    .build());
+        }
+
+        @Test
+        @DisplayName("Number of recurrent transactions does not change after update")
+        void whenUpdatingRecurrentTransactions_expectConstantNumOfRecurrentTransactions() {
+            int numTransactionsBeforeUpdate = transactionRepository.findByIsRecurrentTrue().size();
+            recurrentTransactionService.updateRecurrentTransactionsOnDB();
+            int numTransactionsAfterUpdate = transactionRepository.findByIsRecurrentTrue().size();
+
+            assertEquals(numTransactionsBeforeUpdate, numTransactionsAfterUpdate);
+        }
+
+        @Test
+        @DisplayName("Old records of a recurrent transaction are preserved")
+        void whenUpdatingRecurrentTransactions_expectToKeepOldRecord() {
+            recurrentTransactionService.updateRecurrentTransactionsOnDB();
+            
+            List<Transaction> transactions = transactionRepository.findByOwner(testUser);
+            Transaction oldRecord = transactions.get(0);
+            Transaction newRecord = transactions.get(1);
+
+            assertAll(
+                    () -> assertEquals(oldRecord.getTransactionType(), newRecord.getTransactionType()),
+                    () -> assertEquals(oldRecord.getAmount(), newRecord.getAmount()),
+                    () -> assertFalse(oldRecord.isRecurrent()),
+                    () -> assertTrue(newRecord.isRecurrent()),
+                    () -> assertTrue(newRecord.getCreatedAt().isAfter(oldRecord.getCreatedAt())));
         }
     }
 
