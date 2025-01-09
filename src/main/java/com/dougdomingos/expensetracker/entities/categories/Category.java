@@ -1,8 +1,9 @@
-package com.dougdomingos.expensetracker.entities.transaction;
+package com.dougdomingos.expensetracker.entities.categories;
 
-import java.time.LocalDateTime;
-import java.util.Locale.Category;
+import java.util.List;
 
+import com.dougdomingos.expensetracker.entities.transaction.Transaction;
+import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.entities.user.User;
 
 import jakarta.persistence.Column;
@@ -15,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,39 +27,23 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transaction {
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long transactionId;
+    private Long categoryId;
+
+    @Column(nullable = false)
+    private String name;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean isRecurrent = false;
-
-    @Column(nullable = false)
-    private Double amount;
-
-    @Column(nullable = false)
-    private String title;
-
-    @Column(nullable = true)
-    private String description;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private List<Transaction> transactions;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User owner;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = true)
-    private Category category;
-
 }
