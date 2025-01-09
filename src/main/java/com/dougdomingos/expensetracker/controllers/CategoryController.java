@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dougdomingos.expensetracker.dto.category.CategoryResponseDTO;
+import com.dougdomingos.expensetracker.dto.category.CreateCategoryDTO;
+import com.dougdomingos.expensetracker.dto.category.EditCategoryDTO;
 import com.dougdomingos.expensetracker.services.category.CategoryService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,8 +32,8 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<Object> createCategory(
-            @RequestBody @Valid Object categoryDTO) {
+    public ResponseEntity<CategoryResponseDTO> createCategory(
+            @RequestBody @Valid CreateCategoryDTO categoryDTO) {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -38,7 +41,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{idCategory}")
-    public ResponseEntity<Object> getCategory(
+    public ResponseEntity<CategoryResponseDTO> getCategory(
             @PathVariable Long idCategory) {
 
         return ResponseEntity
@@ -47,7 +50,7 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Object>> listCategories() {
+    public ResponseEntity<List<CategoryResponseDTO>> listCategories() {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -55,9 +58,9 @@ public class CategoryController {
     }
 
     @PutMapping("/{idCategory}")
-    public ResponseEntity<Object> editTransaction(
+    public ResponseEntity<Object> editCategory(
             @PathVariable Long idCategory,
-            @RequestBody @Valid Object categoryDTO) {
+            @RequestBody @Valid EditCategoryDTO categoryDTO) {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
