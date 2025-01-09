@@ -1,8 +1,8 @@
 package com.dougdomingos.expensetracker.entities.transaction;
 
 import java.time.LocalDateTime;
-import java.util.Locale.Category;
 
+import com.dougdomingos.expensetracker.entities.categories.Category;
 import com.dougdomingos.expensetracker.entities.user.User;
 
 import jakarta.persistence.Column;
