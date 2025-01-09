@@ -67,7 +67,7 @@ public class CategoryController {
                 .body(categoryService.editCategory(idCategory, categoryDTO));
     }
 
-    @DeleteMapping("/{idTransaction}")
+    @DeleteMapping("/{idCategory}")
     public ResponseEntity<Void> removeTransaction(@PathVariable Long idCategory) {
         categoryService.removeCategory(idCategory);
 
