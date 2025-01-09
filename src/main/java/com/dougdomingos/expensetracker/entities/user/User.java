@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.dougdomingos.expensetracker.entities.categories.Category;
 import com.dougdomingos.expensetracker.entities.transaction.Transaction;
 
 import jakarta.persistence.CascadeType;
@@ -52,7 +53,7 @@ public class User implements UserDetails {
     private List<Transaction> transactions;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Transaction> categories;
+    private List<Category> categories;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
