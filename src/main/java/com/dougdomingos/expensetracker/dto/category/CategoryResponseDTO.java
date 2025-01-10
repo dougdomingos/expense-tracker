@@ -1,6 +1,6 @@
 package com.dougdomingos.expensetracker.dto.category;
 
-import java.util.List;
+import java.util.Set;
 
 import com.dougdomingos.expensetracker.entities.transaction.Transaction;
 import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
@@ -31,5 +31,5 @@ public class CategoryResponseDTO {
     private TransactionType transactionType;
 
     @JsonProperty("transactions")
-    private List<Transaction> transactions;
+    private Set<Transaction> transactions;
 }

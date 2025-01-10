@@ -18,6 +18,7 @@ import com.dougdomingos.expensetracker.dto.category.CategoryResponseDTO;
 import com.dougdomingos.expensetracker.dto.category.CreateCategoryDTO;
 import com.dougdomingos.expensetracker.dto.category.EditCategoryDTO;
 import com.dougdomingos.expensetracker.services.category.CategoryService;
+import com.dougdomingos.expensetracker.services.category.CategoryTransactionsService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -30,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 public class CategoryController {
 
     private final CategoryService categoryService;
+
+    private final CategoryTransactionsService categoryTransactionsService;
 
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(
@@ -51,14 +54,13 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> listCategories() {
-
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(categoryService.listCategories());
     }
 
     @PutMapping("/{idCategory}")
-    public ResponseEntity<Object> editCategory(
+    public ResponseEntity<CategoryResponseDTO> editCategory(
             @PathVariable Long idCategory,
             @RequestBody @Valid EditCategoryDTO categoryDTO) {
 
@@ -75,4 +77,29 @@ public class CategoryController {
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
+
+    @PostMapping("/{idCategory}/transactions/{idTransaction}")
+    public ResponseEntity<CategoryResponseDTO> addTransactionToCategory(
+            @PathVariable Long idCategory,
+            @PathVariable Long idTransaction) {
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(categoryTransactionsService.addTransactionToCategory(
+                        idCategory,
+                        idTransaction));
+    }
+
+    @DeleteMapping("/{idCategory}/transactions/{idTransaction}")
+    public ResponseEntity<CategoryResponseDTO> removeTransactionFromCategory(
+            @PathVariable Long idCategory,
+            @PathVariable Long idTransaction) {
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(categoryTransactionsService.removeTransactionFromCategory(
+                        idCategory,
+                        idTransaction));
+    }
+
 }
