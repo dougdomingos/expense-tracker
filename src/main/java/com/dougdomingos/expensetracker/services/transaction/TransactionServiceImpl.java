@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.dougdomingos.expensetracker.auth.AuthUtils;
@@ -14,9 +13,9 @@ import com.dougdomingos.expensetracker.entities.transaction.Transaction;
 import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.entities.user.User;
 import com.dougdomingos.expensetracker.exceptions.transaction.InvalidTransactionTypeException;
-import com.dougdomingos.expensetracker.exceptions.transaction.TransactionNotFoundException;
 import com.dougdomingos.expensetracker.repositories.TransactionRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
+import com.dougdomingos.expensetracker.utils.EntityAccessUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +26,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
 
     private final UserRepository userRepository;
+
+    private final EntityAccessUtils entityAccessUtils;
 
     private final ModelMapper mapper;
 
@@ -50,7 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionResponseDTO editTransaction(Long id, Object transactionDTO) {
-        Transaction transaction = fetchUserTransaction(id);
+        Transaction transaction = entityAccessUtils.fetchUserTransaction(id);
 
         mapper.map(transactionDTO, transaction);
         transactionRepository.save(transaction);
@@ -60,7 +61,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionResponseDTO getTransaction(Long id) {
-        Transaction transaction = fetchUserTransaction(id);
+        Transaction transaction = entityAccessUtils.fetchUserTransaction(id);
         return mapper.map(transaction, TransactionResponseDTO.class);
     }
 
@@ -86,34 +87,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public void removeTransaction(Long id) {
-        Transaction transaction = fetchUserTransaction(id);
+        Transaction transaction = entityAccessUtils.fetchUserTransaction(id);
         transactionRepository.delete(transaction);
-    }
-
-    /**
-     * Given a transaction ID, returns the transaction object.
-     * 
-     * @param idTransaction The ID of the transaction to be fetched
-     * @throws AccessDeniedException        Thrown if the requested transaction does
-     *                                      not belong to the user
-     * @throws TransactionNotFoundException Thrown if the requested transaction is
-     *                                      not found in the database
-     * @return The transaction object
-     */
-    private Transaction fetchUserTransaction(Long idTransaction)
-            throws AccessDeniedException, TransactionNotFoundException {
-
-        User currentUser = userRepository.findByUserId(AuthUtils.getAuthenticatedUserID());
-
-        Transaction transaction = transactionRepository
-                .findById(idTransaction)
-                .orElseThrow(TransactionNotFoundException::new);
-
-        if (!transaction.getOwner().equals(currentUser)) {
-            throw new AccessDeniedException("Current user does not own this transaction");
-        }
-
-        return transaction;
     }
 
 }

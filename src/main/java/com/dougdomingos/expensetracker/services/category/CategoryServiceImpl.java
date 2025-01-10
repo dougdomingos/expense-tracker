@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.dougdomingos.expensetracker.auth.AuthUtils;
@@ -13,9 +12,9 @@ import com.dougdomingos.expensetracker.dto.category.CreateCategoryDTO;
 import com.dougdomingos.expensetracker.dto.category.EditCategoryDTO;
 import com.dougdomingos.expensetracker.entities.categories.Category;
 import com.dougdomingos.expensetracker.entities.user.User;
-import com.dougdomingos.expensetracker.exceptions.category.CategoryNotFoundException;
 import com.dougdomingos.expensetracker.repositories.CategoryRepository;
 import com.dougdomingos.expensetracker.repositories.UserRepository;
+import com.dougdomingos.expensetracker.utils.EntityAccessUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +25,8 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     private final UserRepository userRepository;
+
+    private final EntityAccessUtils entityAccessUtils;
 
     private final ModelMapper mapper;
 
@@ -43,7 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponseDTO editCategory(Long id, EditCategoryDTO categoryDTO) {
-        Category category = fetchUserCategory(id);
+        Category category = entityAccessUtils.fetchUserCategory(id);
 
         mapper.map(categoryDTO, category);
         categoryRepository.save(category);
@@ -53,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponseDTO getCategory(Long id) {
-        Category category = fetchUserCategory(id);
+        Category category = entityAccessUtils.fetchUserCategory(id);
         return mapper.map(category, CategoryResponseDTO.class);
     }
 
@@ -71,34 +72,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void removeCategory(Long id) {
-        Category category = fetchUserCategory(id);
+        Category category = entityAccessUtils.fetchUserCategory(id);
         categoryRepository.delete(category);
-    }
-
-    /**
-     * Given a category ID, returns the category object.
-     * 
-     * @param idCategory The ID of the category to be fetched
-     * @throws AccessDeniedException     Thrown if the requested category does
-     *                                   not belong to the user
-     * @throws CategoryNotFoundException Thrown if the requested category is
-     *                                   not found in the database
-     * @return The category object
-     */
-    private Category fetchUserCategory(Long idCategory)
-            throws AccessDeniedException, CategoryNotFoundException {
-
-        User currentUser = userRepository.findByUserId(AuthUtils.getAuthenticatedUserID());
-
-        Category category = categoryRepository
-                .findById(idCategory)
-                .orElseThrow(CategoryNotFoundException::new);
-
-        if (!category.getOwner().equals(currentUser)) {
-            throw new AccessDeniedException("Current user does not own this category");
-        }
-
-        return category;
     }
 
 }
