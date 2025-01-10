@@ -25,6 +25,7 @@ import com.dougdomingos.expensetracker.dto.category.CategoryResponseDTO;
 import com.dougdomingos.expensetracker.dto.category.CreateCategoryDTO;
 import com.dougdomingos.expensetracker.dto.category.EditCategoryDTO;
 import com.dougdomingos.expensetracker.entities.categories.Category;
+import com.dougdomingos.expensetracker.entities.transaction.Transaction;
 import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.entities.user.User;
 import com.dougdomingos.expensetracker.exceptions.ApplicationErrorType;
@@ -236,6 +237,107 @@ public class CategoryControllerTest {
             ApplicationErrorType result = objectMapper.readValue(responseJSON, ApplicationErrorType.class);
 
             assertEquals("Specified category not found", result.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Validations for handling transactions within categories")
+    class CategoryTransactionsValidationTests {
+
+        private Category incomeCategory;
+
+        private Category expenseCategory;
+
+        @BeforeEach
+        void setup() {
+            incomeCategory = createTestCategory(TransactionType.INCOME);
+            expenseCategory = createTestCategory(TransactionType.EXPENSE);
+        }
+
+        @Test
+        @DisplayName("Rejects adding expenses to a income category")
+        void whenAddExpenseToCategory_withIncomeCategory_expectToFail() throws Exception {
+            Transaction expenseTransaction = transactionRepository.save(Transaction.builder()
+                    .title("Expense")
+                    .transactionType(TransactionType.EXPENSE)
+                    .amount(100D)
+                    .owner(testUser)
+                    .build());
+
+            apiClient.setRoute(
+                    "/" + incomeCategory.getCategoryId() + "/transactions/" + expenseTransaction.getTransactionId());
+            String responseJSON = apiClient.makePostRequest(null, status().isBadRequest());
+
+            ApplicationErrorType result = objectMapper
+                    .readValue(responseJSON, ApplicationErrorType.class);
+
+            assertEquals("Transaction type does not match category type", result.getMessage());
+        }
+
+        @Test
+        @DisplayName("Rejects adding incomes to a expense category")
+        void whenAddIncomeToCategory_withExpenseCategory_expectToFail() throws Exception {
+            Transaction incomeTransaction = transactionRepository.save(Transaction.builder()
+                    .title("Income")
+                    .transactionType(TransactionType.INCOME)
+                    .amount(100D)
+                    .owner(testUser)
+                    .build());
+
+            apiClient.setRoute(
+                    "/" + expenseCategory.getCategoryId() + "/transactions/" + incomeTransaction.getTransactionId());
+            String responseJSON = apiClient.makePostRequest(null, status().isBadRequest());
+
+            ApplicationErrorType result = objectMapper
+                    .readValue(responseJSON, ApplicationErrorType.class);
+
+            assertEquals("Transaction type does not match category type", result.getMessage());
+        }
+
+        @Test
+        @DisplayName("Accepts adding incomes to a income category")
+        void whenAddIncomeToCategory_withIncomeCategory_expectToPass() throws Exception {
+            Transaction incomeTransaction = transactionRepository.save(Transaction.builder()
+                    .title("Income")
+                    .transactionType(TransactionType.INCOME)
+                    .amount(100D)
+                    .owner(testUser)
+                    .build());
+
+            apiClient.setRoute(
+                    "/" + incomeCategory.getCategoryId() + "/transactions/" + incomeTransaction.getTransactionId());
+            String responseJSON = apiClient.makePostRequest(null, status().isOk());
+
+            CategoryResponseDTO result = objectMapper
+                    .readValue(responseJSON, CategoryResponseDTO.class);
+
+            assertAll(
+                    () -> assertEquals("Test category", result.getName()),
+                    () -> assertEquals(TransactionType.INCOME, result.getTransactionType()),
+                    () -> assertEquals(1, result.getTransactions().size()));
+        }
+
+        @Test
+        @DisplayName("Accepts adding incomes to a expense category")
+        void whenAddExpenseToCategory_withExpenseCategory_expectToPass() throws Exception {
+            Transaction expenseTransaction = transactionRepository.save(Transaction.builder()
+                    .title("Expense")
+                    .transactionType(TransactionType.EXPENSE)
+                    .amount(100D)
+                    .owner(testUser)
+                    .build());
+
+            apiClient.setRoute(
+                    "/" + expenseCategory.getCategoryId() + "/transactions/" + expenseTransaction.getTransactionId());
+            String responseJSON = apiClient.makePostRequest(null, status().isOk());
+
+            CategoryResponseDTO result = objectMapper
+                    .readValue(responseJSON, CategoryResponseDTO.class);
+
+            assertAll(
+                    () -> assertEquals("Test category", result.getName()),
+                    () -> assertEquals(TransactionType.EXPENSE, result.getTransactionType()),
+                    () -> assertEquals(1, result.getTransactions().size()));
         }
     }
 
