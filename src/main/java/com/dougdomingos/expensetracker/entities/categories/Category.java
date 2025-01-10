@@ -1,5 +1,6 @@
 package com.dougdomingos.expensetracker.entities.categories;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.dougdomingos.expensetracker.entities.transaction.Transaction;
@@ -41,7 +42,8 @@ public class Category {
     private TransactionType transactionType;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    private Set<Transaction> transactions;
+    @Builder.Default
+    private Set<Transaction> transactions = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
