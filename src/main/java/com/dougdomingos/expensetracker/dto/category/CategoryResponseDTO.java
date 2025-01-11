@@ -25,10 +25,10 @@ public class CategoryResponseDTO {
     @NotBlank
     private String name;
 
-    @JsonProperty("transactionType")
+    @JsonProperty("categoryType")
     @NotNull
     @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
+    private TransactionType categoryType;
 
     @JsonProperty("transactions")
     private List<TransactionResponseDTO> transactions;

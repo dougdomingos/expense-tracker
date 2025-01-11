@@ -40,7 +40,7 @@ public class Category {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
+    private TransactionType categoryType;
 
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -60,6 +60,6 @@ public class Category {
     }
     
     public boolean matchesTypeOfCategory(Transaction transaction) {
-        return transactionType.equals(transaction.getTransactionType());
+        return categoryType.equals(transaction.getTransactionType());
     }
 }

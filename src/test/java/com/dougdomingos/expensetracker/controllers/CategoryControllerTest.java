@@ -98,7 +98,7 @@ public class CategoryControllerTest {
         void setup() {
             categoryDTO = CreateCategoryDTO.builder()
                     .name("Test category")
-                    .transactionType(TransactionType.INCOME)
+                    .categoryType(TransactionType.INCOME)
                     .build();
         }
 
@@ -135,7 +135,7 @@ public class CategoryControllerTest {
         @Test
         @DisplayName("Rejects creating categories with null type")
         void whenCreateCategory_withNullType_expectToFail() throws Exception {
-            categoryDTO.setTransactionType(null);
+            categoryDTO.setCategoryType(null);
 
             String responseJSON = apiClient.makePostRequest(categoryDTO, status().isBadRequest());
 
@@ -313,7 +313,7 @@ public class CategoryControllerTest {
 
             assertAll(
                     () -> assertEquals("Test category", result.getName()),
-                    () -> assertEquals(TransactionType.INCOME, result.getTransactionType()),
+                    () -> assertEquals(TransactionType.INCOME, result.getCategoryType()),
                     () -> assertEquals(1, result.getTransactions().size()));
         }
 
@@ -336,7 +336,7 @@ public class CategoryControllerTest {
 
             assertAll(
                     () -> assertEquals("Test category", result.getName()),
-                    () -> assertEquals(TransactionType.EXPENSE, result.getTransactionType()),
+                    () -> assertEquals(TransactionType.EXPENSE, result.getCategoryType()),
                     () -> assertEquals(1, result.getTransactions().size()));
         }
     }
@@ -350,7 +350,7 @@ public class CategoryControllerTest {
         void whenCreateCategory_withValidData_expectToPass() throws Exception {
             CreateCategoryDTO newCategory = CreateCategoryDTO.builder()
                     .name("Test category")
-                    .transactionType(TransactionType.INCOME)
+                    .categoryType(TransactionType.INCOME)
                     .build();
 
             String responseJSON = apiClient.makePostRequest(newCategory, status().isCreated());
@@ -361,7 +361,7 @@ public class CategoryControllerTest {
 
             assertAll(
                     () -> assertEquals(newCategory.getName(), result.getName()),
-                    () -> assertEquals(newCategory.getTransactionType(), result.getTransactionType()));
+                    () -> assertEquals(newCategory.getCategoryType(), result.getCategoryType()));
         }
 
         @Test
@@ -397,7 +397,7 @@ public class CategoryControllerTest {
 
             assertAll(
                     () -> assertEquals(testCategory.getName(), result.getName()),
-                    () -> assertEquals(testCategory.getTransactionType(), result.getTransactionType()),
+                    () -> assertEquals(testCategory.getCategoryType(), result.getCategoryType()),
                     () -> assertNotNull(result.getTransactions()));
         }
 
@@ -414,8 +414,8 @@ public class CategoryControllerTest {
 
             assertAll(
                     () -> assertEquals(2, result.size()),
-                    () -> assertEquals(category1.getTransactionType(), result.get(0).getTransactionType()),
-                    () -> assertEquals(category2.getTransactionType(), result.get(1).getTransactionType()));
+                    () -> assertEquals(category1.getCategoryType(), result.get(0).getCategoryType()),
+                    () -> assertEquals(category2.getCategoryType(), result.get(1).getCategoryType()));
         }
 
         @Test
@@ -441,7 +441,7 @@ public class CategoryControllerTest {
     private Category createTestCategory(TransactionType type) {
         return categoryRepository.save(Category.builder()
                 .name("Test category")
-                .transactionType(type)
+                .categoryType(type)
                 .owner(testUser)
                 .build());
     }

@@ -22,9 +22,9 @@ public class CreateCategoryDTO {
     @NotBlank(message = "Category name is required")
     private String name;
     
-    @JsonProperty("transactionType")
+    @JsonProperty("categoryType")
     @NotNull(message = "Transaction type is required")
     @Enumerated(EnumType.STRING)
-    private TransactionType transactionType;
+    private TransactionType categoryType;
     
 }
