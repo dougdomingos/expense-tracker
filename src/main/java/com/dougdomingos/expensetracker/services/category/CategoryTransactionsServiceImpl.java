@@ -1,7 +1,5 @@
 package com.dougdomingos.expensetracker.services.category;
 
-import java.util.Set;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +27,11 @@ public class CategoryTransactionsServiceImpl implements CategoryTransactionsServ
         Category category = entityAccessUtils.fetchUserCategory(categoryId);
         Transaction transactionToAdd = entityAccessUtils.fetchUserTransaction(transactionId);
 
-        if (!category.getTransactionType().equals(transactionToAdd.getTransactionType())) {
+        if (!category.matchesTypeOfCategory(transactionToAdd)) {
             throw new CategoryTypeMismatchException();
         }
         
-        Set<Transaction> transactions = category.getTransactions();
-        transactions.add(transactionToAdd);
-        category.setTransactions(transactions);
+        category.addTransaction(transactionToAdd);
         categoryRepository.save(category);
         
         return mapper.map(category, CategoryResponseDTO.class);
@@ -46,9 +42,7 @@ public class CategoryTransactionsServiceImpl implements CategoryTransactionsServ
         Category category = entityAccessUtils.fetchUserCategory(categoryId);
         Transaction transactionToRemove = entityAccessUtils.fetchUserTransaction(transactionId);
         
-        Set<Transaction> transactions = category.getTransactions();
-        transactions.remove(transactionToRemove);
-        category.setTransactions(transactions);
+        category.removeTransaction(transactionToRemove);
         categoryRepository.save(category);
 
         return mapper.map(category, CategoryResponseDTO.class);

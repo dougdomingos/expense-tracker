@@ -50,4 +50,16 @@ public class Category {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User owner;
+
+    public boolean addTransaction(Transaction transaction) {
+        return transactions.add(transaction);
+    }
+
+    public boolean removeTransaction(Transaction transaction) {
+        return transactions.remove(transaction);
+    }
+    
+    public boolean matchesTypeOfCategory(Transaction transaction) {
+        return transactionType.equals(transaction.getTransactionType());
+    }
 }
