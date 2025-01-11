@@ -47,7 +47,7 @@ public class Category {
     private Double totalAmount = 0.0;
 
     @Builder.Default
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", referencedColumnName = "categoryId")
     private Set<Transaction> transactions = new HashSet<>();
 
