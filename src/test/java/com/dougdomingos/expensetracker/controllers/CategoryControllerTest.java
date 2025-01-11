@@ -86,6 +86,8 @@ public class CategoryControllerTest {
     @AfterEach
     void tearDown() {
         userRepository.deleteAll();
+        transactionRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @Nested
@@ -248,10 +250,30 @@ public class CategoryControllerTest {
 
         private Category expenseCategory;
 
+        private Transaction transaction1;
+
+        private Transaction transaction2;
+
         @BeforeEach
         void setup() {
             incomeCategory = createTestCategory(TransactionType.INCOME);
             expenseCategory = createTestCategory(TransactionType.EXPENSE);
+
+            transaction1 = transactionRepository.save(Transaction.builder()
+                    .title("Income transaction")
+                    .transactionType(TransactionType.INCOME)
+                    .isRecurrent(false)
+                    .amount(250D)
+                    .owner(testUser)
+                    .build());
+
+            transaction2 = transactionRepository.save(Transaction.builder()
+                    .title("Expense transaction")
+                    .transactionType(TransactionType.EXPENSE)
+                    .isRecurrent(false)
+                    .amount(250D)
+                    .owner(testUser)
+                    .build());
         }
 
         @Test
@@ -314,11 +336,12 @@ public class CategoryControllerTest {
             assertAll(
                     () -> assertEquals("Test category", result.getName()),
                     () -> assertEquals(TransactionType.INCOME, result.getCategoryType()),
+                    () -> assertEquals(incomeTransaction.getAmount(), result.getTotalAmount()),
                     () -> assertEquals(1, result.getTransactions().size()));
         }
 
         @Test
-        @DisplayName("Accepts adding incomes to a expense category")
+        @DisplayName("Accepts adding expenses to a expense category")
         void whenAddExpenseToCategory_withExpenseCategory_expectToPass() throws Exception {
             Transaction expenseTransaction = transactionRepository.save(Transaction.builder()
                     .title("Expense")
@@ -337,7 +360,42 @@ public class CategoryControllerTest {
             assertAll(
                     () -> assertEquals("Test category", result.getName()),
                     () -> assertEquals(TransactionType.EXPENSE, result.getCategoryType()),
+                    () -> assertEquals(expenseTransaction.getAmount(), result.getTotalAmount()),
                     () -> assertEquals(1, result.getTransactions().size()));
+        }
+
+        @Test
+        @DisplayName("Adding a transaction to a category increments its total amount")
+        void whenAddTransactionToCategory_expectTotalAmountToIncrement() throws Exception {
+            Double categoryInitialAmount = incomeCategory.getTotalAmount();
+
+            apiClient.setRoute(
+                    "/" + incomeCategory.getCategoryId() + "/transactions/" + transaction1.getTransactionId());
+            String responseJSON = apiClient.makePostRequest(null, status().isOk());
+
+            CategoryResponseDTO result = objectMapper.readValue(responseJSON, CategoryResponseDTO.class);
+
+            assertAll(
+                    () -> assertEquals(0, categoryInitialAmount),
+                    () -> assertEquals(transaction1.getAmount(), result.getTotalAmount()));
+        }
+
+        @Test
+        @DisplayName("Removing a transaction from a category decrements its total amount")
+        void whenRemoveTransactionFromCategory_expectTotalAmountToDecrement() throws Exception {
+            expenseCategory.addTransaction(transaction2);
+            categoryRepository.save(expenseCategory);
+            Double categoryInitialAmount = expenseCategory.getTotalAmount();
+
+            apiClient.setRoute(
+                    "/" + expenseCategory.getCategoryId() + "/transactions/" + transaction2.getTransactionId());
+            String responseJSON = apiClient.makeDeleteRequest(null, status().isOk());
+
+            CategoryResponseDTO result = objectMapper.readValue(responseJSON, CategoryResponseDTO.class);
+
+            assertAll(
+                    () -> assertEquals(250, categoryInitialAmount),
+                    () -> assertEquals(0, result.getTotalAmount()));
         }
     }
 
