@@ -7,6 +7,7 @@ import com.dougdomingos.expensetracker.entities.transaction.Transaction;
 import com.dougdomingos.expensetracker.entities.transaction.TransactionType;
 import com.dougdomingos.expensetracker.entities.user.User;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,8 +42,9 @@ public class Category {
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
-    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", referencedColumnName = "categoryId")
     private Set<Transaction> transactions = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

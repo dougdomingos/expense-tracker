@@ -2,7 +2,6 @@ package com.dougdomingos.expensetracker.entities.transaction;
 
 import java.time.LocalDateTime;
 
-import com.dougdomingos.expensetracker.entities.categories.Category;
 import com.dougdomingos.expensetracker.entities.user.User;
 
 import jakarta.persistence.Column;
@@ -55,9 +54,4 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User owner;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = true)
-    private Category category;
-
 }
