@@ -43,6 +43,10 @@ public class Category {
     private TransactionType categoryType;
 
     @Builder.Default
+    @Column(nullable = false)
+    private Double totalAmount = 0.0;
+
+    @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", referencedColumnName = "categoryId")
     private Set<Transaction> transactions = new HashSet<>();
@@ -51,14 +55,46 @@ public class Category {
     @JoinColumn(name = "user_id")
     private User owner;
 
+    /**
+     * Add the specified transaction to this category, while incrementing its total
+     * value. If the operation fails, the category value is not updated.
+     * 
+     * @param transaction The transaction to be inserted into this category.
+     * @return A boolean value; true if the operation succeeds, false otherwise
+     */
     public boolean addTransaction(Transaction transaction) {
-        return transactions.add(transaction);
+        boolean wasTransactionAdded = transactions.add(transaction);
+        if (wasTransactionAdded) {
+            totalAmount += transaction.getAmount();
+        }
+
+        return wasTransactionAdded;
     }
 
+    /**
+     * Remove the specified transaction from this category, while decrementing its
+     * total value. If the operation fails, the category value is not updated.
+     * 
+     * @param transaction The transaction to be removed from this category.
+     * @return A boolean value; true if the operation succeeds, false otherwise
+     */
     public boolean removeTransaction(Transaction transaction) {
-        return transactions.remove(transaction);
+        boolean wasTransactionRemoved = transactions.remove(transaction);
+        if (wasTransactionRemoved) {
+            totalAmount -= transaction.getAmount();
+        }
+
+        return wasTransactionRemoved;
     }
-    
+
+    /**
+     * Verifies if the type of the specified transaction matches the type of this
+     * category.
+     * 
+     * @param transaction The transaction to be analyzed.
+     * @return A boolean value; true if the type of the transaction matches the type
+     *         of this category, false otherwise
+     */
     public boolean matchesTypeOfCategory(Transaction transaction) {
         return categoryType.equals(transaction.getTransactionType());
     }
