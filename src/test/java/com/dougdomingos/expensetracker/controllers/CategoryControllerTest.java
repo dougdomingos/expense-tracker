@@ -397,6 +397,19 @@ public class CategoryControllerTest {
                     () -> assertEquals(250, categoryInitialAmount),
                     () -> assertEquals(0, result.getTotalAmount()));
         }
+
+        @Test
+        @DisplayName("Removing a transaction from a category does not delete the transaction")
+        void whenDeleteCategory_expectTransactionToPersistIntoDB() throws Exception {
+            expenseCategory.addTransaction(transaction2);
+            categoryRepository.save(expenseCategory);
+
+            apiClient.setRoute("/" + expenseCategory.getCategoryId());
+            apiClient.makeDeleteRequest(null, status().isNoContent());
+
+            assertAll(
+                    () -> assertTrue(transactionRepository.findById(transaction2.getTransactionId()).isPresent()));
+        }
     }
 
     @Nested
