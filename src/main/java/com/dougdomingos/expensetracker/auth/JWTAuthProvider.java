@@ -1,9 +1,11 @@
 package com.dougdomingos.expensetracker.auth;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,16 +22,30 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 @Configuration
 public class JWTAuthProvider {
 
-    @Value("${jwt.public.key}")
-    private RSAPublicKey publicKey;
+    @Bean
+    public KeyPair keyPair() {
+        KeyPair keys = null;
+        KeyPairGenerator generator;
 
-    @Value("${jwt.private.key}")
-    private RSAPrivateKey privateKey;
+        try {
+            generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            keys = generator.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println("Unable to generate RSA key pair!");
+            e.printStackTrace();
+        }
+
+        return keys;
+    }
 
     @Bean
     public JwtEncoder jwtEncoder() {
-        JWK jwk = new RSAKey.Builder(this.publicKey)
-                .privateKey(this.privateKey)
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair().getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair().getPrivate();
+
+        JWK jwk = new RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
                 .build();
 
         var jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
@@ -39,8 +55,9 @@ public class JWTAuthProvider {
 
     @Bean
     public JwtDecoder jwtDecoder() {
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair().getPublic();
         return NimbusJwtDecoder
-                .withPublicKey(this.publicKey)
+                .withPublicKey(publicKey)
                 .build();
     }
 
