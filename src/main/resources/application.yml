@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: expensetracker
+
+  # This loads the appropriate configuration for the current Maven profile  
+  profiles:
+    active: @activeProfile@
