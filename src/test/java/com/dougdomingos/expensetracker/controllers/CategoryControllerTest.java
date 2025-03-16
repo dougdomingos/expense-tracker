@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.dougdomingos.expensetracker.auth.TokenGenerator;
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("dev")
 @DisplayName("Integration tests for category features")
 public class CategoryControllerTest {
 
